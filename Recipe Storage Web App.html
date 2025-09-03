@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recipe Storage Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #218838;
+    }
+    .recipe-card {
+      background: #fff;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .recipe-card img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .edit-btn {
+      background: #007bff;
+    }
+    .edit-btn:hover {
+      background: #0056b3;
+    }
+    .delete-btn {
+      background: #dc3545;
+    }
+    .delete-btn:hover {
+      background: #b02a37;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍲 Recipe Storage Web App</h1>
+    <h2>Add Your Recipe</h2>
+    <form id="recipeForm">
+      <input type="hidden" id="editIndex" />
+      <label>Recipe Name:</label>
+      <input type="text" id="recipeName" required />
+
+      <label>Ingredients (comma separated):</label>
+      <textarea id="ingredients" required></textarea>
+
+      <label>Instructions:</label>
+      <textarea id="instructions" required></textarea>
+
+      <label>Image URL (optional):</label>
+      <input type="url" id="imageUrl" placeholder="https://example.com/food.jpg"/>
+
+      <button type="submit">Save Recipe</button>
+    </form>
+
+    <h2>📖 My Recipes</h2>
+    <div id="recipeList"></div>
+  </div>
+
+  <script>
+    const recipeForm = document.getElementById("recipeForm");
+    const recipeList = document.getElementById("recipeList");
+    let recipes = JSON.parse(localStorage.getItem("recipes")) || [];
+
+    // Display recipes
+    function displayRecipes() {
+      recipeList.innerHTML = "";
+      recipes.forEach((recipe, index) => {
+        const card = document.createElement("div");
+        card.classList.add("recipe-card");
+
+        card.innerHTML = `
+          <h3>${recipe.name}</h3>
+          <p><strong>Ingredients:</strong> ${recipe.ingredients}</p>
+          <p><strong>Instructions:</strong> ${recipe.instructions}</p>
+          ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}"/>` : ""}
+          <div class="actions">
+            <button class="edit-btn" onclick="editRecipe(${index})">Edit</button>
+            <button class="delete-btn" onclick="deleteRecipe(${index})">Delete</button>
+          </div>
+        `;
+        recipeList.appendChild(card);
+      });
+    }
+
+    // Save or update recipe
+    recipeForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = document.getElementById("recipeName").value;
+      const ingredients = document.getElementById("ingredients").value;
+      const instructions = document.getElementById("instructions").value;
+      const image = document.getElementById("imageUrl").value;
+      const editIndex = document.getElementById("editIndex").value;
+
+      const recipeData = { name, ingredients, instructions, image };
+
+      if (editIndex) {
+        recipes[editIndex] = recipeData;
+        document.getElementById("editIndex").value = "";
+      } else {
+        recipes.push(recipeData);
+      }
+
+      localStorage.setItem("recipes", JSON.stringify(recipes));
+      recipeForm.reset();
+      displayRecipes();
+    });
+
+    // Edit recipe
+    function editRecipe(index) {
+      const recipe = recipes[index];
+      document.getElementById("recipeName").value = recipe.name;
+      document.getElementById("ingredients").value = recipe.ingredients;
+      document.getElementById("instructions").value = recipe.instructions;
+      document.getElementById("imageUrl").value = recipe.image;
+      document.getElementById("editIndex").value = index;
+    }
+
+    // Delete recipe
+    function deleteRecipe(index) {
+      if (confirm("Are you sure you want to delete this recipe?")) {
+        recipes.splice(index, 1);
+        localStorage.setItem("recipes", JSON.stringify(recipes));
+        displayRecipes();
+      }
+    }
+
+    // Initial display
+    displayRecipes();
+  </script>
+</body>
+</html>
